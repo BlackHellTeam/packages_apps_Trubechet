@@ -2773,14 +2773,11 @@ public final class Launcher extends Activity
         final float scale = (float) res.getInteger(R.integer.config_appsCustomizeZoomScaleFactor);
         final View fromView = mWorkspace;
         final AppsCustomizeTabHost toView = mAppsCustomizeTabHost;
-        final int startDelay =
-                res.getInteger(R.integer.config_workspaceAppsCustomizeAnimationStagger);
+        final int startDelay = 0;
 
         setPivotsForZoom(toView);
 
-        // Shrink workspaces away if going to AppsCustomize from workspace
-        Animator workspaceAnim =
-                mWorkspace.getChangeStateAnimation(Workspace.State.SMALL, animated);
+        mWorkspace.buildPageHardwareLayers();
 
         if (animated) {
             toView.setScaleX(scale);
@@ -2796,7 +2793,7 @@ public final class Launcher extends Activity
             final ObjectAnimator alphaAnim = ObjectAnimator
                 .ofFloat(toView, "alpha", 0f, 1f)
                 .setDuration(fadeDuration);
-            alphaAnim.setInterpolator(new DecelerateInterpolator(1.5f));
+            alphaAnim.setInterpolator(new DecelerateInterpolator(1.0f));
             alphaAnim.addUpdateListener(new AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
@@ -2853,9 +2850,11 @@ public final class Launcher extends Activity
                 }
             });
 
-            if (workspaceAnim != null) {
-                mStateAnimation.play(workspaceAnim);
-            }
+            final ObjectAnimator workspaceAlphaAnim = ObjectAnimator
+                    .ofFloat(fromView, "alpha", 1f, 0f)
+                    .setDuration(fadeDuration);
+            alphaAnim.setInterpolator(new DecelerateInterpolator(1.5f));
+            mStateAnimation.play(workspaceAlphaAnim);
 
             boolean delayAnim = false;
             final ViewTreeObserver observer;
