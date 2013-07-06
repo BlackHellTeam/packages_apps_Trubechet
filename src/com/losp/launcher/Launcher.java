@@ -3028,6 +3028,7 @@ public final class Launcher extends Activity
                 }
             });
         } else {
+            toView.setAlpha(1.0f);
             fromView.setVisibility(View.GONE);
             dispatchOnLauncherTransitionPrepare(fromView, animated, true);
             dispatchOnLauncherTransitionStart(fromView, animated, true);
