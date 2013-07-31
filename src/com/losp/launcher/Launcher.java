@@ -2860,15 +2860,6 @@ public final class Launcher extends Activity
                         mSearchDropTargetBar.hideSearchBar(false);
                     }
 
-                    ContentResolver resolver = getContentResolver();
-                    String settingValue = Settings.System.getString(resolver, Settings.System.NAVIGATION_BAR_ALPHA_CONFIG);
-                    if (settingValue != null) {
-                        String alphas[] = settingValue.split(";");
-                        if (Float.parseFloat(alphas[0]) == 1) {
-                            // remove the nasty backdrops!
-                            return;
-                        }
-                    }
                     mDragLayer.setBackground(null);
 
                 }
