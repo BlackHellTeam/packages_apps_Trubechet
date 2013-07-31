@@ -508,7 +508,14 @@ public class AppsCustomizeTabHost extends TabHost implements LauncherTransitiona
     }
 
     private void updateAppsCustomizeTabHostAlpha() {
-        final String sbConfig = Settings.System.getString(mContext
+        float AppsCustomizeTabHostTransparency = 0.0f;
+        AppsCustomizeTabHostTransparency = 1.0f - Settings.System.getFloat(mContext.getContentResolver(),
+                       Settings.System.STATUS_BAR_ALPHA,
+                       0.5f);
+        int AppsCustomizeTabHostAlpha = Math.round(AppsCustomizeTabHostTransparency * 255);
+        getBackground().setAlpha(AppsCustomizeTabHostAlpha);
+        mAnimationBuffer.getBackground().setAlpha(AppsCustomizeTabHostAlpha);
+        /*final String sbConfig = Settings.System.getString(mContext
                 .getContentResolver(),
                 Settings.System.NAVIGATION_BAR_ALPHA_CONFIG);
         if (sbConfig != null) {
@@ -520,6 +527,6 @@ public class AppsCustomizeTabHost extends TabHost implements LauncherTransitiona
         } else {
             getBackground().setAlpha(0);
             mAnimationBuffer.getBackground().setAlpha(0);
-        }
+        }*/
     }
 }
