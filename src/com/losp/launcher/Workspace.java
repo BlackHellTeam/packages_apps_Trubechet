@@ -520,6 +520,8 @@ public class Workspace extends PagedView
         LauncherApplication app = (LauncherApplication)context.getApplicationContext();
         mIconCache = app.getIconCache();
         setWillNotDraw(false);
+        setClipChildren(false);
+        setClipToPadding(false);
         setChildrenDrawnWithCacheEnabled(true);
 
         final Resources res = getResources();
@@ -937,7 +939,7 @@ public class Workspace extends PagedView
             if (isSmall()) {
                 // If we are in springloaded mode, then force an event to check if the current touch
                 // is under a new page (to scroll to)
-                mDragController.forceMoveEvent();
+                mDragController.forceTouchMove();
             }
         } else {
             // If we are not mid-dragging, hide the page outlines
@@ -1366,7 +1368,8 @@ public class Workspace extends PagedView
         float startAlpha = getBackgroundAlpha();
         if (finalAlpha != startAlpha) {
             if (animated) {
-                mBackgroundFadeOutAnimation = LauncherAnimUtils.ofFloat(startAlpha, finalAlpha);
+                mBackgroundFadeOutAnimation =
+                        LauncherAnimUtils.ofFloat(this, startAlpha, finalAlpha);
                 mBackgroundFadeOutAnimation.addUpdateListener(new AnimatorUpdateListener() {
                     public void onAnimationUpdate(ValueAnimator animation) {
                         setBackgroundAlpha((Float) animation.getAnimatedValue());
@@ -2000,13 +2003,13 @@ public class Workspace extends PagedView
                 }
             }
             for (int i = 0; i < screenCount; i++) {
-                final CellLayout layout = (CellLayout) getChildAt(i);
+                final CellLayout layout = (CellLayout) getPageAt(i);
                 if (!(leftScreen <= i && i <= rightScreen && shouldDrawChild(layout))) {
                     layout.disableHardwareLayers();
                 }
             }
             for (int i = 0; i < screenCount; i++) {
-                final CellLayout layout = (CellLayout) getChildAt(i);
+                final CellLayout layout = (CellLayout) getPageAt(i);
                 if (leftScreen <= i && i <= rightScreen && shouldDrawChild(layout)) {
                     layout.enableHardwareLayers();
                 }
@@ -2407,7 +2410,8 @@ public class Workspace extends PagedView
                     }
                     if (mOldBackgroundAlphas[i] != 0 ||
                         mNewBackgroundAlphas[i] != 0) {
-                        ValueAnimator bgAnim = LauncherAnimUtils.ofFloat(0f, 1f).setDuration(duration);
+                        ValueAnimator bgAnim =
+                                LauncherAnimUtils.ofFloat(cl, 0f, 1f).setDuration(duration);
                         bgAnim.setInterpolator(mZoomInInterpolator);
                         bgAnim.addUpdateListener(new LauncherAnimatorUpdateListener() {
                                 public void onAnimationUpdate(float a, float b) {
@@ -2420,7 +2424,6 @@ public class Workspace extends PagedView
                     }
                 }
             }
-            buildPageHardwareLayers();
             anim.setStartDelay(delay);
         }
 
@@ -2440,6 +2443,7 @@ public class Workspace extends PagedView
     @Override
     public void onLauncherTransitionPrepare(Launcher l, boolean animated, boolean toWorkspace) {
         mIsSwitchingState = true;
+        updateChildrenLayersEnabled(false);
         cancelScrollingIndicatorAnimations();
     }
 
@@ -3770,6 +3774,10 @@ public class Workspace extends PagedView
                         mLauncher.processShortcutFromDrop(pendingInfo.componentName,
                                 container, screen, mTargetCell, null);
                         break;
+                    case LauncherSettings.Favorites.ITEM_TYPE_LIVE_FOLDER:
+                        mLauncher.processLiveFolderFromDrop(pendingInfo.componentName,
+                                container, screen, mTargetCell, null);
+                        break;
                     default:
                         throw new IllegalStateException("Unknown item type: " +
                                 pendingInfo.itemType);
@@ -3807,6 +3815,7 @@ public class Workspace extends PagedView
                 view = mLauncher.createShortcut(R.layout.application, cellLayout,
                         (ShortcutInfo) info);
                 break;
+            case LauncherSettings.Favorites.ITEM_TYPE_LIVE_FOLDER:
             case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
                 view = FolderIcon.fromXml(R.layout.folder_icon, mLauncher, cellLayout,
                         (FolderInfo) info);
@@ -4350,6 +4359,13 @@ public class Workspace extends PagedView
                                     LauncherModel.deleteItemFromDatabase(mLauncher, info);
                                     childrenToRemove.add(view);
                                 }
+                            }
+                        } else if (tag instanceof LiveFolderInfo) {
+                            final LiveFolderInfo info = (LiveFolderInfo) tag;
+                            String folderPkg = info.receiver.getPackageName();
+                            if (packageNames.contains(folderPkg)) {
+                                LauncherModel.deleteItemFromDatabase(mLauncher, info);
+                                childrenToRemove.add(view);
                             }
                         } else if (tag instanceof FolderInfo) {
                             final FolderInfo info = (FolderInfo) tag;
