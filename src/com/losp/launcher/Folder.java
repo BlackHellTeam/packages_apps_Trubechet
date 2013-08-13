@@ -25,7 +25,6 @@ import android.content.res.Resources;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.os.Vibrator;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spannable;
@@ -44,7 +43,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.losp.launcher.FolderInfo.FolderListener;
 import com.losp.launcher.preference.PreferencesProvider;
@@ -208,16 +206,6 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         if (tag instanceof ShortcutInfo) {
             // refactor this code from Folder
             ShortcutInfo item = (ShortcutInfo) tag;
-
-            if (item instanceof LiveFolderItemInfo && item.intent == null) {
-                LiveFolderItemInfo fItem = (LiveFolderItemInfo) item;
-                if (fItem.item_id > 0) {
-                    LiveFoldersReceiver.alertItemOpened(mContext, (LiveFolderInfo) getInfo(),
-                            (LiveFolderItemInfo) item);
-                }
-                return;
-            }
-
             int[] pos = new int[2];
             v.getLocationOnScreen(pos);
             item.intent.setSourceBounds(new Rect(pos[0], pos[1],
@@ -228,36 +216,19 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     }
 
     public boolean onLongClick(View v) {
+        // Only if workspace is not locked
+        if (mLauncher.getLockWorkspace()) return false;
 
         // Return if global dragging is not enabled
         if (!mLauncher.isDraggingEnabled()) return true;
 
-        ShortcutInfo item = v.getTag() instanceof ShortcutInfo ?
-                (ShortcutInfo) v.getTag() : null;
-
-        if (item != null) {
+        Object tag = v.getTag();
+        if (tag instanceof ShortcutInfo) {
+            ShortcutInfo item = (ShortcutInfo) tag;
             if (!v.isInTouchMode()) {
                 return false;
             }
 
-            if (item instanceof LiveFolderItemInfo) {
-                mLauncher.dismissFolderCling(null);
-                getInfo().remove(item);
-                Vibrator vibr = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-                vibr.vibrate(DragController.VIBRATE_DURATION);
-                LiveFoldersReceiver.alertItemRemoved(mContext,
-                        (LiveFolderInfo) getInfo(), (LiveFolderItemInfo) item);
-                return true;
-            }
-        }
-
-        // Only if workspace is not locked
-        if (mLauncher.getLockWorkspace()) {
-            Toast.makeText(mContext, getResources().getString(R.string.workspace_locked), Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        if (item != null) {
             mLauncher.dismissFolderCling(null);
 
             mLauncher.getWorkspace().onDragStartedWithItem(v);
@@ -427,10 +398,6 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
             mFolderName.setText(mInfo.title);
         } else {
             mFolderName.setText("");
-        }
-
-        if (getInfo() instanceof LiveFolderInfo) {
-            mFolderName.setEnabled(false);
         }
         updateItemLocationsInDatabase();
     }
@@ -937,10 +904,8 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
             if (info.cellX != vacant[0] || info.cellY != vacant[1]) {
                 info.cellX = vacant[0];
                 info.cellY = vacant[1];
-                if (!(getInfo() instanceof LiveFolderInfo)) {
-                    LauncherModel.addOrMoveItemInDatabase(mLauncher, info, mInfo.id, 0,
-                            info.cellX, info.cellY);
-                }
+                LauncherModel.addOrMoveItemInDatabase(mLauncher, info, mInfo.id, 0,
+                        info.cellX, info.cellY);
             }
             mContent.addViewToCellLayout(v, 0, (int) info.id, lp, true);
         }
@@ -979,11 +944,6 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     }
 
     private void replaceFolderWithFinalItem() {
-
-        if (mInfo instanceof LiveFolderInfo) {
-            return;
-        }
-
         // Add the last remaining child to the workspace in place of the folder
         Runnable onCompleteRunnable = new Runnable() {
             @Override
@@ -1094,10 +1054,8 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
             findAndSetEmptyCells(item);
         }
         createAndAddShortcut(item);
-        if (item instanceof LiveFolderItemInfo) {
-            LauncherModel.addOrMoveItemInDatabase(
-                    mLauncher, item, mInfo.id, 0, item.cellX, item.cellY);
-        }
+        LauncherModel.addOrMoveItemInDatabase(
+                mLauncher, item, mInfo.id, 0, item.cellX, item.cellY);
     }
 
     public void onRemove(ShortcutInfo item) {

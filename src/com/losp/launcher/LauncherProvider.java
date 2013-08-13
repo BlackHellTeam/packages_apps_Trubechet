@@ -62,7 +62,7 @@ public class LauncherProvider extends ContentProvider {
 
     private static final String DATABASE_NAME = "launcher.db";
 
-    private static final int DATABASE_VERSION = 15;
+    private static final int DATABASE_VERSION = 14;
 
     static final String AUTHORITY = "com.losp.launcher.settings";
 
@@ -289,8 +289,7 @@ public class LauncherProvider extends ContentProvider {
                     "iconType INTEGER," +
                     "iconPackage TEXT," +
                     "iconResource TEXT," +
-                    "icon BLOB," +
-                    "receiverComponent TEXT" +
+                    "icon BLOB" +
                     ");");
 
             // Database was just created, so wipe any previous widgets
@@ -432,11 +431,6 @@ public class LauncherProvider extends ContentProvider {
                     loadFavorites(db, R.xml.update_workspace);
                 }
                 version = 14;
-            }
-
-            if (oldVersion < 15) {
-                db.execSQL("ALTER TABLE favorites ADD receiverComponent TEXT;");
-                version = 15;
             }
 
             if (version != DATABASE_VERSION) {

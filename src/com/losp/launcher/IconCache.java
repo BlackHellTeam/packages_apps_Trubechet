@@ -161,10 +161,6 @@ public class IconCache {
 
     public Bitmap getIcon(Intent intent) {
         synchronized (mCache) {
-            if (intent == null) {
-                return mDefaultIcon;
-            }
-
             final ResolveInfo resolveInfo = mPackageManager.resolveActivity(intent, 0);
             ComponentName component = intent.getComponent();
 
