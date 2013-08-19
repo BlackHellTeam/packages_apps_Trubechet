@@ -608,7 +608,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 }
             } else {
                 // just add shortcuts
-                mWidgets.add(o);
+                // mWidgets.add(o);
             }
         }
         mWidgets.addAll(shortcuts);
