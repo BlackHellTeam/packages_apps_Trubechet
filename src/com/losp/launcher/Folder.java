@@ -91,7 +91,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     private int[] mEmptyCell = new int[2];
     private Alarm mReorderAlarm = new Alarm();
     private Alarm mOnExitAlarm = new Alarm();
-    private int mFolderNameHeight;
+    private int mFolderNameHeight, mFolderNameWidth;
     private Rect mTempRect = new Rect();
     private boolean mDragInProgress = false;
     private boolean mDeleteFolderOnDropCompleted = false;
@@ -105,10 +105,14 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     private InputMethodManager mInputMethodManager;
 
     private static String sDefaultFolderName;
-    private static String sHintText;
+    private String mHintText;
     private ObjectAnimator mOpenCloseAnimator;
 
     private boolean mDestroyed;
+
+    // Empty folder filler
+    private TextView mEmptyTitle;
+    private int mEmptyTitleWidth, mEmptyTitleHeight;
 
     /**
      * Used to inflate the Workspace from XML.
@@ -140,8 +144,8 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         if (sDefaultFolderName == null) {
             sDefaultFolderName = res.getString(R.string.folder_name);
         }
-        if (sHintText == null) {
-            sHintText = res.getString(R.string.folder_hint_text);
+        if (mHintText == null) {
+            mHintText = res.getString(R.string.folder_hint_text);
         }
         mLauncher = (Launcher) context;
         // We need this view to be focusable in touch mode so that when text editing of the folder
@@ -170,6 +174,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         int measureSpec = MeasureSpec.UNSPECIFIED;
         mFolderName.measure(measureSpec, measureSpec);
         mFolderNameHeight = mFolderName.getMeasuredHeight();
+        mFolderNameWidth = mFolderName.getMeasuredWidth();
 
         // We disable action mode for now since it messes up the view on phones
         mFolderName.setCustomSelectionActionModeCallback(mActionModeCallback);
@@ -177,6 +182,11 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         mFolderName.setSelectAllOnFocus(true);
         mFolderName.setInputType(mFolderName.getInputType() |
                 InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+
+        mEmptyTitle = (TextView) findViewById(R.id.empty_content);
+        mEmptyTitle.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+        mEmptyTitleWidth = mEmptyTitle.getMeasuredWidth();
+        mEmptyTitleHeight = mEmptyTitle.getMeasuredHeight();
 
         if (PreferencesProvider.Interface.Homescreen.getHideIconLabels()){
             mFolderName.setVisibility(View.GONE);
@@ -263,7 +273,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     }
 
     public void doneEditingFolderName(boolean commit) {
-        mFolderName.setHint(sHintText);
+        mFolderName.setHint(mHintText);
         // Convert to a string here to ensure that no other state associated with the text field
         // gets saved.
         String newTitle = mFolderName.getText().toString();
@@ -448,7 +458,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
             public void onAnimationEnd(Animator animation) {
                 mState = STATE_OPEN;
                 setLayerType(LAYER_TYPE_NONE, null);
-                Cling cling = mLauncher.showFirstRunFoldersCling();
+                Cling cling = mLauncher.showFirstRunFoldersCling(true);
                 if (cling != null) {
                     cling.bringToFront();
                 }
@@ -801,9 +811,19 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     private void centerAboutIcon() {
         DragLayer.LayoutParams lp = (DragLayer.LayoutParams) getLayoutParams();
 
-        int width = getPaddingLeft() + getPaddingRight() + mContent.getDesiredWidth();
-        int height = getPaddingTop() + getPaddingBottom() + mContent.getDesiredHeight()
-                + mFolderNameHeight;
+        int width = getPaddingLeft() + getPaddingRight();
+        int height = getPaddingTop() + getPaddingBottom() + mFolderNameHeight;
+
+        if (mContent.getCountX() == 0) {
+            width += mEmptyTitleWidth;
+            height += mEmptyTitleHeight;
+            mEmptyTitle.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyTitle.setVisibility(View.GONE);
+            width += mContent.getDesiredWidth();
+            height += mContent.getDesiredHeight();
+        }
+
         DragLayer parent = (DragLayer) mLauncher.findViewById(R.id.drag_layer);
 
         float scale = parent.getDescendantRectRelativeToSelf(mFolderIcon, mTempRect);
@@ -881,10 +901,23 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
                 MeasureSpec.EXACTLY);
         int contentHeightSpec = MeasureSpec.makeMeasureSpec(mContent.getDesiredHeight(),
                 MeasureSpec.EXACTLY);
-        mContent.measure(contentWidthSpec, contentHeightSpec);
+
+        if (mContent.getCountX() == 0) {
+            width += mEmptyTitleWidth;
+            contentWidthSpec = MeasureSpec.makeMeasureSpec(
+                    mEmptyTitleWidth, MeasureSpec.EXACTLY);
+            mContent.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY));
+        } else {
+            mContent.measure(contentWidthSpec, contentHeightSpec);
+        }
 
         mFolderName.measure(contentWidthSpec,
                 MeasureSpec.makeMeasureSpec(mFolderNameHeight, MeasureSpec.EXACTLY));
+
+        mEmptyTitle.measure(contentWidthSpec,
+                MeasureSpec.makeMeasureSpec(mEmptyTitleHeight, MeasureSpec.EXACTLY));
+
         setMeasuredDimension(width, height);
     }
 
@@ -930,6 +963,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         mFolderIcon.requestFocus();
 
         if (mRearrangeOnClose) {
+            mItemsInvalidated = true;
             setupContentForNumItems(getItemCount());
             mRearrangeOnClose = false;
         }
