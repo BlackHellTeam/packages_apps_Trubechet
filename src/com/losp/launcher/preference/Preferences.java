@@ -23,6 +23,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceScreen;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.LayoutInflater;
@@ -35,13 +36,14 @@ import android.widget.TextView;
 
 import com.losp.launcher.LauncherApplication;
 import com.losp.launcher.R;
+import com.losp.launcher.IconPackHelper;
 
 import java.util.List;
 
 public class Preferences extends PreferenceActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private static final String TAG = "Trebuchet.Preferences";
+    private static final String TAG = "LightLauncher.Preferences";
 
     private SharedPreferences mPreferences;
 
@@ -161,11 +163,39 @@ public class Preferences extends PreferenceActivity
     }
 
     public static class GeneralFragment extends PreferenceFragment {
+        private static final String ICON_PACK_KEY = "ui_general_iconpack";
+        private Preference mIconPackPreference;
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
             addPreferencesFromResource(R.xml.preferences_general);
+            mIconPackPreference = findPreference(ICON_PACK_KEY);
+        }
+
+        @Override
+        public void onResume() {
+            int numIconPacks = IconPackHelper.getSupportedPackages(
+                    getActivity()).size();
+            if (numIconPacks > 0) {
+                mIconPackPreference.setSummary(
+                        R.string.preferences_interface_general_iconpack_summary);
+                mIconPackPreference.setEnabled(true);
+            } else {
+                mIconPackPreference.setSummary(R.string.no_iconpacks_summary);
+                mIconPackPreference.setEnabled(false);
+            }
+            super.onResume();
+        }
+
+
+        @Override
+        public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+                Preference preference) {
+            if (preference.getKey().equals("ui_general_iconpack")) {
+                IconPackHelper.pickIconPack(getActivity());
+            }
+            return super.onPreferenceTreeClick(preferenceScreen, preference);
         }
     }
 
