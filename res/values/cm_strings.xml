@@ -181,11 +181,9 @@
     <string name="effects_carousel_left">Carousel left</string>
     <string name="effects_carousel_right">Carousel right</string>
 
-    <!-- Live folder cling -->
-    <string name="live_folder_cling_title">Live folders</string>
+    <!-- folder cling -->
+    <string name="live_folder_cling_title">Folders</string>
     <!-- The description of how to create a folder [CHAR_LIMIT=none] -->
-    <string name="live_folder_cling_create_folder">Live folders allow app developers to create folders with dynamic content.
-    Folder contents can be removed with a long press on a single entry. Unlike normal folders, items can only be added by
-    the appplication creating the folder</string>
+    <string name="live_folder_cling_create_folder">Folders contains a set of icons. You can drag several app icons together to create a folder.A folder will be deleted when there is only one app in it.</string>
 
 </resources>

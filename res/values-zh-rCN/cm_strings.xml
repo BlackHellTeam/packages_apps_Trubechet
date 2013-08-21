@@ -129,4 +129,13 @@
     <string name="effects_accordion">手风琴</string>
     <string name="effects_carousel_left">旋转木马 (左)</string>
     <string name="effects_carousel_right">旋转木马 (右)</string>
+    <string name="preferences_interface_drawer_hidden_apps_shortcuts_title">隐藏应用 (图标)</string>
+    <string name="preferences_interface_drawer_hidden_apps_shortcuts_summary">从主屏幕移除隐藏应用的图标</string>
+    <string name="preferences_interface_drawer_hidden_apps_widgets_title">隐藏应用 (部件)</string>
+    <string name="preferences_interface_drawer_hidden_apps_widgets_summary">从主屏幕移除隐藏应用的小部件</string>
+
+    <!-- folder cling -->
+    <string name="live_folder_cling_title">文件夹</string>
+    <!-- The description of how to create a folder [CHAR_LIMIT=none] -->
+    <string name="live_folder_cling_create_folder">文件夹是图标的集合. 将数个应用图标拖到一起可以创建一个文件夹. 当文件夹只包含一个图标时，它将被删除.</string>
 </resources>
