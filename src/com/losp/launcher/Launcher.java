@@ -2836,10 +2836,6 @@ public final class Launcher extends Activity
 
         setPivotsForZoom(toView);
 
-        // Shrink workspaces away if going to AppsCustomize from workspace
-        Animator workspaceAnim =
-                mWorkspace.getChangeStateAnimation(Workspace.State.PREVIEW, animated);
-
         mWorkspace.buildPageHardwareLayers();
 
         if (animated) {
@@ -2932,10 +2928,6 @@ public final class Launcher extends Activity
                     animationCancelled = true;
                 }
             });
-
-            if (workspaceAnim != null) {
-                mStateAnimation.play(workspaceAnim);
-            }
 
             final ObjectAnimator workspaceAlphaAnim = ObjectAnimator
                     .ofFloat(fromView, "alpha", 1f, 0f)
@@ -3091,10 +3083,6 @@ public final class Launcher extends Activity
             });
 
             mStateAnimation.playTogether(scaleAnim, alphaAnim);
-
-            if (workspaceAnim != null) {
-                mStateAnimation.play(workspaceAnim);
-            }
 
             final ObjectAnimator workspaceAlphaAnim = ObjectAnimator
                 .ofFloat(toView, "alpha", 0f, 1f)
