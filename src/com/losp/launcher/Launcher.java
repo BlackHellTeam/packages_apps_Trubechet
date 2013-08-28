@@ -462,6 +462,9 @@ public final class Launcher extends Activity
 
         // On large interfaces, we want the screen to auto-rotate based on the current orientation
         unlockScreenOrientation(true);
+
+        // Disable Swipe Back Gesture on Launcher
+        setSwipeBackEnable(false);
     }
 
     protected void onUserLeaveHint() {
