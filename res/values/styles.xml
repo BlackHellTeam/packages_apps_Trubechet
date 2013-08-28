@@ -192,9 +192,4 @@
     <style name="CustomClingText">
     </style>
 
-    <!-- Override translucent -->
-    <style name="Theme.Launcher" parent="Theme">
-        <item name="android:windowIsTranslucent">false</item>
-    </style>
-
 </resources>
